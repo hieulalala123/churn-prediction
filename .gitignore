@@ -1,0 +1,8 @@
+# Bỏ qua thư mục thư viện (rất nặng, ai tải về tự cài sau)
+venv/
+__pycache__/
+
+# Bỏ qua file chứa mật khẩu, API key (cực kỳ quan trọng để bảo mật!)
+.env
+*.local
+
