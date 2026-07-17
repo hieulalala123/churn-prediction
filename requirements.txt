@@ -1,5 +1,15 @@
 numpy
 pandas
 matplotlib
+seaborn
+missingno
+ipywidgets>=7.6.0
+plotly
 scikit-learn
 lightgbm
+xgboost
+catboost
+optuna
+shap
+lime
+nbformat>=4.2.0
