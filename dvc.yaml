@@ -1,0 +1,21 @@
+stages:
+  split:
+    cmd: uv run python -c "from src.churn_classification.data_split import get_split; get_split()"
+    deps:
+      - data/WA_Fn-UseC_-Telco-Customer-Churn.csv
+      - src/data/loader.py
+      - src/churn_classification/data_split.py
+    outs:
+      - data/processed/churn_classification
+
+  train:
+    cmd: uv run python -m src.churn_classification.train --config configs/train.yaml --promote
+    deps:
+      - data/processed/churn_classification
+      - configs/train.yaml
+      - src/churn_classification/train.py
+      - src/churn_classification/final_model.py
+      - src/churn_classification/preprocessing.py
+    metrics:
+      - reports/metrics.json:
+          cache: false

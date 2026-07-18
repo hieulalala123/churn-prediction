@@ -18,6 +18,7 @@ dev = [
     "pre-commit",
     "httpx",
     "pyyaml",
+    "dvc>=3.67.1",
 ]
 # train.py needs only mlflow+pyyaml; optuna/shap live in the notebooks group
 # (used only in notebooks 03/05), keeping this group installable on 3.14
