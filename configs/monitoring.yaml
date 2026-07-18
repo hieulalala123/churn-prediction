@@ -1,0 +1,10 @@
+# Drift-check config for src/monitoring/drift.py.
+# The check compares served feature distributions (prediction log) against the
+# training reference and exits nonzero when drift_share is exceeded — that
+# exit code is the whole retraining-hook contract (scripts/retrain_if_drift.sh).
+
+# Fail the check when more than this share of feature columns has drifted.
+drift_share: 0.3
+
+current_data: prediction-logs/predictions.csv
+report_dir: reports/drift

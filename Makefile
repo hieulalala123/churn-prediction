@@ -1,4 +1,5 @@
-.PHONY: setup lint fmt test cov train train-promote mlflow-ui serve compose-up compose-down
+.PHONY: setup lint fmt test cov train train-promote mlflow-ui serve compose-up compose-down \
+	check-drift simulate-drift retrain-if-drift
 
 setup:
 	uv sync --all-groups
@@ -35,3 +36,12 @@ compose-up:
 
 compose-down:
 	docker compose down
+
+check-drift:
+	uv run python -m src.monitoring.drift
+
+simulate-drift:
+	uv run python -m src.monitoring.simulate_drift
+
+retrain-if-drift:
+	bash scripts/retrain_if_drift.sh
