@@ -33,6 +33,7 @@ serve = [
     "mlflow-skinny>=3",
     "pydantic",
     "prometheus-fastapi-instrumentator>=8.0.2",
+    "skops>=0.14.0",
 ]
 monitor = [
     "evidently>=0.7,<0.8",

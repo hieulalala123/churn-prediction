@@ -13,6 +13,7 @@ Usage:
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 
 import mlflow
@@ -76,7 +77,9 @@ def main(config_path: str | Path, promote: bool = False) -> str:
     pipeline.fit(X_train, y_train)
     metrics = evaluate(pipeline, X_test, y_test, threshold)
 
-    mlflow.set_tracking_uri(cfg["mlflow"]["tracking_uri"])
+    # Env var wins over config so `MLFLOW_TRACKING_URI=http://... make train-promote`
+    # can target the docker-compose registry without editing the yaml.
+    mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI", cfg["mlflow"]["tracking_uri"]))
     mlflow.set_experiment(cfg["mlflow"]["experiment_name"])
     registered_name = cfg["mlflow"]["registered_model_name"]
 

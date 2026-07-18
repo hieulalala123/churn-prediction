@@ -4984,6 +4984,7 @@ serve = [
     { name = "mlflow-skinny" },
     { name = "prometheus-fastapi-instrumentator" },
     { name = "pydantic" },
+    { name = "skops" },
     { name = "uvicorn" },
 ]
 train = [
@@ -5034,6 +5035,7 @@ serve = [
     { name = "mlflow-skinny", specifier = ">=3" },
     { name = "prometheus-fastapi-instrumentator", specifier = ">=8.0.2" },
     { name = "pydantic" },
+    { name = "skops", specifier = ">=0.14.0" },
     { name = "uvicorn" },
 ]
 train = [
