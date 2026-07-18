@@ -45,8 +45,8 @@ stages:
       size: 3351
     - path: src/churn_classification/train.py
       hash: md5
-      md5: 42d5c98f3a0b070fdfb0486822ab7e6a
-      size: 5014
+      md5: d685b04a6473e1b5ae3daf26c7df6c92
+      size: 5220
     outs:
     - path: reports/metrics.json
       hash: md5

@@ -68,6 +68,26 @@ Quy trình chuẩn từ zero: `make setup` → `uv run dvc pull` → `make train
 
 Lưu ý vòng retrain: `retrain_if_drift.sh` là manual-trigger có chủ đích — trong production thì lịch chạy (cron/Airflow) + alerting sẽ thay thế, và "retrain ngay khi drift" thường cần người duyệt vì drift có thể do lỗi upstream data chứ không phải thay đổi hành vi khách hàng thật.
 
+## Bẫy tích hợp đã gặp (và cách đã xử lý)
+
+Ghi lại vì đây là những lỗi **chỉ lộ ra khi chạy trong Docker**, local không thấy:
+
+1. **Tracking URI: env var phải thắng config.** Ban đầu `train.py` set `mlflow.set_tracking_uri(cfg[...])` — nghĩa là `MLFLOW_TRACKING_URI=http://127.0.0.1:5000 make train-promote` bị config âm thầm redirect về sqlite local, model không bao giờ tới registry trong container (API load ra rỗng). Đã sửa: env var được ưu tiên, config chỉ là fallback.
+2. **`skops` phải nằm trong group `serve`.** mlflow≥3 serialize sklearn model bằng skops, nhưng `mlflow-skinny` (dùng trong image serving cho nhẹ) không kéo skops theo — container crash `ModuleNotFoundError` ngay lúc load model dù local (cài mlflow full) chạy bình thường. Bài học: image tối giản phải được test load-model thật, không suy ra từ local.
+
+## Trạng thái verified (2026-07-18)
+
+Toàn bộ stack đã chạy và kiểm chứng end-to-end trên Docker compose:
+
+- [x] `make setup` / lint / format / pre-commit / 24 pytest — xanh
+- [x] `make train-promote` — holdout PR-AUC 0.6365 / ROC-AUC 0.8369, **khớp chính xác notebook 04**; chạy 2 lần metrics giống hệt (deterministic)
+- [x] `dvc repro` idempotent, `dvc pull` khôi phục data đã xóa, metrics qua `dvc metrics show`
+- [x] Compose 4 services up: mlflow (5000), api (8000), prometheus (9090), grafana (3000)
+- [x] API load `@champion` từ registry container, threshold 0.465 từ tag; high-risk → 0.906/churn, low-risk → 0.019/không
+- [x] Prometheus target `churn-api` up, scrape histogram `churn_prediction_probability`; Grafana dashboard 3 panels provisioned
+- [x] Vòng tự động hoàn chỉnh trên Docker: simulate drift → check phát hiện (drifted_share 0.42 > 0.3) → retrain → promote v2 `@champion` → `POST /reload` → API serve v2 không cần restart
+- [x] GitHub Actions CI trên branch `mlops` (lint + test matrix 3.12/3.14 + docker-build)
+
 ## Tương thích Python 3.14 (ghi nhận thực tế khi build)
 
 - `shap` → `numba`/`llvmlite`: **chưa có wheel 3.14** — đây là lý do `.python-version` pin 3.12 và Docker image dùng `python:3.12-slim`. `optuna`/`shap` được chuyển vào group `notebooks` để các group còn lại cài được trên 3.14 (CI matrix 3.12 + 3.14 làm canary).
