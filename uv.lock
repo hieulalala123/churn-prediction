@@ -4267,8 +4267,12 @@ notebooks = [
     { name = "matplotlib" },
     { name = "missingno" },
     { name = "nbformat" },
+    { name = "numba" },
+    { name = "optuna" },
     { name = "plotly" },
     { name = "seaborn" },
+    { name = "shap", version = "0.49.1", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'darwin'" },
+    { name = "shap", version = "0.52.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'x86_64' or sys_platform != 'darwin'" },
     { name = "xgboost" },
 ]
 serve = [
@@ -4279,11 +4283,7 @@ serve = [
 ]
 train = [
     { name = "mlflow" },
-    { name = "numba" },
-    { name = "optuna" },
     { name = "pyyaml" },
-    { name = "shap", version = "0.49.1", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'darwin'" },
-    { name = "shap", version = "0.52.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'x86_64' or sys_platform != 'darwin'" },
 ]
 
 [package.metadata]
@@ -4316,8 +4316,11 @@ notebooks = [
     { name = "matplotlib" },
     { name = "missingno" },
     { name = "nbformat", specifier = ">=4.2.0" },
+    { name = "numba", specifier = ">=0.60" },
+    { name = "optuna" },
     { name = "plotly" },
     { name = "seaborn" },
+    { name = "shap", specifier = ">=0.46" },
     { name = "xgboost" },
 ]
 serve = [
@@ -4328,10 +4331,7 @@ serve = [
 ]
 train = [
     { name = "mlflow", specifier = ">=3" },
-    { name = "numba", specifier = ">=0.60" },
-    { name = "optuna" },
     { name = "pyyaml" },
-    { name = "shap", specifier = ">=0.46" },
 ]
 
 [[package]]
