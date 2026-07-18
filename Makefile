@@ -1,4 +1,4 @@
-.PHONY: setup lint fmt test cov train train-promote mlflow-ui
+.PHONY: setup lint fmt test cov train train-promote mlflow-ui serve compose-up compose-down
 
 setup:
 	uv sync --all-groups
@@ -25,3 +25,13 @@ train-promote:
 
 mlflow-ui:
 	uv run mlflow ui --backend-store-uri sqlite:///mlflow.db
+
+serve:
+	MLFLOW_TRACKING_URI=$${MLFLOW_TRACKING_URI:-sqlite:///mlflow.db} \
+		uv run uvicorn src.serving.app:app --port 8000
+
+compose-up:
+	docker compose up -d --build
+
+compose-down:
+	docker compose down

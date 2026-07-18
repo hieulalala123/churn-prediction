@@ -33,3 +33,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: uv sync --group dev --group train --group serve
       - run: uv run pytest --cov=src --cov-report=term
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f docker/serve.Dockerfile .

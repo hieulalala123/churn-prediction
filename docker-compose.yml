@@ -1,0 +1,26 @@
+services:
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v3.4.0
+    command: >
+      mlflow server
+      --backend-store-uri sqlite:////mlflow/mlflow.db
+      --artifacts-destination /mlflow/mlruns
+      --host 0.0.0.0 --port 5000
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlflow-data:/mlflow
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/serve.Dockerfile
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      PREDICTION_LOG_PATH: /logs/predictions.csv
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./prediction-logs:/logs
+    depends_on:
+      - mlflow
