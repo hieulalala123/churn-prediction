@@ -1,0 +1,19 @@
+# Run config for src/churn_classification/train.py.
+# Model hyperparameters are NOT here — they live in final_model.BEST_PARAMS
+# (the literal Optuna output from notebook 03); this file only configures
+# the run: tracking destination, registry naming, and the decision threshold.
+
+mlflow:
+  # Local file-backed store; switch to http://127.0.0.1:5000 once the
+  # docker-compose mlflow server is up so training and serving share one registry.
+  tracking_uri: sqlite:///mlflow.db
+  experiment_name: churn-classification
+  registered_model_name: telco-churn-catboost
+  promote_alias: champion
+
+# Cost-based threshold from notebook 05 (Part A): argmax of expected retention
+# value on OOF predictions under the base cost assumptions — beats both the
+# 0.5 default and the F2-optimal 0.295 on expected value.
+decision_threshold: 0.465
+
+metrics_path: reports/metrics.json
