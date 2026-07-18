@@ -1,7 +1,7 @@
 schema: '2.0'
 stages:
   split:
-    cmd: uv run python -c "from src.churn_classification.data_split import 
+    cmd: uv run python -c "from src.churn_classification.data_split import
       get_split; get_split()"
     deps:
     - path: data/WA_Fn-UseC_-Telco-Customer-Churn.csv
@@ -23,7 +23,7 @@ stages:
       size: 978598
       nfiles: 2
   train:
-    cmd: uv run python -m src.churn_classification.train --config 
+    cmd: uv run python -m src.churn_classification.train --config
       configs/train.yaml --promote
     deps:
     - path: configs/train.yaml

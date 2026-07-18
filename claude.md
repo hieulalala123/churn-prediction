@@ -19,9 +19,11 @@ File: `data/WA_Fn-UseC_-Telco-Customer-Churn.csv` — 7043 dòng, 21 cột.
 - Target `Churn` mất cân bằng: **73.5% No / 26.5% Yes** — bắt buộc phải xử lý imbalance (xem phần Modeling bên dưới), accuracy đơn thuần là metric gây hiểu lầm.
 - 16 cột categorical (phần lớn Yes/No/No-<service>-service dạng 3 mức), 3 cột numeric (`tenure`, `MonthlyCharges`, `TotalCharges`).
 
-## Trạng thái hiện tại của notebook
+## Trạng thái hiện tại
 
-`notebooks/classification.ipynb`: đã hoàn thành EDA (missingness, distribution theo gender/contract/payment method/internet service/dependents/partner/senior citizen, KDE của charges theo churn, correlation heatmap dùng `pd.factorize`). Phần modeling **chưa viết** — cell 1 đã import sẵn một loạt classifier (DecisionTree, RandomForest, GaussianNB, KNN, SVC, MLP, AdaBoost, GradientBoosting, ExtraTrees, LogisticRegression, XGBoost, CatBoost) nhưng chưa có cell nào dùng tới. Các cell cuối (37–44) đang trống — đây là chỗ để tiếp tục.
+Phần data science đã **hoàn tất** theo CRISP-ML(Q), 5 notebooks trong `notebooks/churn_classification/` (01 EDA → 05 business value & SHAP; chi tiết trong `docs/docs.md`). Model cuối: CatBoost tuned bằng Optuna (holdout PR-AUC 0.6365, ROC-AUC 0.8369), decision threshold cost-based **0.465** chọn ở notebook 05.
+
+Phần MLOps đã triển khai (chi tiết vận hành trong `docs/mlops.md`): training pipeline tái lập được (`train.py` + MLflow registry, alias `@champion`), FastAPI serving (`src/serving/`), DVC cho data + pipeline split→train, Evidently drift monitoring + retraining hook, Prometheus/Grafana, pytest + GitHub Actions CI, docker-compose đầy đủ stack.
 
 ## Tiêu chuẩn kỹ thuật khi làm modeling (expert-level)
 
@@ -37,16 +39,21 @@ File: `data/WA_Fn-UseC_-Telco-Customer-Churn.csv` — 7043 dòng, 21 cột.
 
 ## Cấu trúc repo
 
-- `notebooks/` — exploration, EDA, thử nghiệm nhanh. Đang có `classification.ipynb`.
-- `src/` — hiện trống. Khi pipeline modeling ổn định (preprocessing, training, evaluation), nên tách thành module tái sử dụng được ở đây thay vì để toàn bộ logic nằm trong notebook.
-- `models/` — nơi lưu model đã train (hiện trống).
-- `reports/` — nơi lưu kết quả đánh giá/biểu đồ xuất ra (hiện trống).
-- `tests/` — hiện trống; nếu tách logic ra `src/`, nên có test cho các bước preprocessing (đặc biệt là xử lý `TotalCharges`, `tenure == 0`) vì đó là business logic dễ vỡ khi data thay đổi.
-- `docs/docs.md` — hiện trống.
-- `data/WA_Fn-UseC_-Telco-Customer-Churn.csv` — dataset chính, tải qua `download_dataset.py` (dùng `kagglehub`).
+- `notebooks/churn_classification/` — 5 notebooks CRISP-ML(Q) đã hoàn tất.
+- `src/data/` — load/clean dataset dùng chung (`load_clean`).
+- `src/churn_classification/` — preprocessing, persisted split (`get_split`, seed 42), final model (`build_final_pipeline`), training entrypoint (`train.py`).
+- `src/serving/` — FastAPI app + `ModelService` (load `@champion` từ MLflow registry).
+- `src/monitoring/` — Evidently drift check + drift simulator.
+- `configs/` — `train.yaml` (threshold 0.465, MLflow config), `monitoring.yaml`.
+- `tests/` — pytest với fixtures synthetic (không cần CSV thật); CI chạy matrix 3.12/3.14.
+- `docker/` + `docker-compose.yml` — mlflow, api, prometheus, grafana.
+- `data/` — raw CSV do **DVC** quản lý (`dvc pull` để lấy về; git chỉ giữ `.dvc` pointer).
+- `docs/docs.md` — writeup CRISP-ML(Q); `docs/mlops.md` — kiến trúc + runbook MLOps.
 
-## Môi trường
+## Môi trường & quy ước MLOps
 
-- Virtualenv tại `.venv/`, Python 3.14.
-- `requirements.txt`: numpy, pandas, matplotlib, missingno, ipywidgets, plotly, scikit-learn, lightgbm, xgboost, catboost, nbformat.
-- **Lưu ý**: notebook dùng `seaborn` (cho KDE plot, heatmap) nhưng `seaborn` **không có** trong `requirements.txt` — cần thêm nếu muốn môi trường reproducible từ file này. Nếu về sau dùng SHAP hoặc imbalanced-learn theo gợi ý ở trên, cũng cần bổ sung.
+- **`uv`** quản lý deps qua `pyproject.toml` + `uv.lock` (không còn requirements.txt). Groups: `dev`/`train`/`serve`/`monitor`/`notebooks`. `make setup` = `uv sync --all-groups`.
+- **Python pin 3.12** (`.python-version`, Docker) vì shap→numba/llvmlite chưa có wheel 3.14 — xem `docs/mlops.md` phần tương thích.
+- Mọi thao tác thường dùng đều có Make target — xem runbook trong `docs/mlops.md`.
+- Model artifacts nằm trong MLflow registry (`mlflow.db`/`mlruns` local hoặc container `mlflow-data/`), **không** commit vào git; `models/` không dùng.
+- Threshold 0.465 là source of truth ở `configs/train.yaml`, stamp lên registry tag mỗi lần train, serving tự đọc — đừng hardcode 0.5 ở bất kỳ đâu.
