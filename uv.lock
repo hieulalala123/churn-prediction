@@ -3513,6 +3513,19 @@ wheels = [
 ]
 
 [[package]]
+name = "prometheus-fastapi-instrumentator"
+version = "8.0.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "prometheus-client" },
+    { name = "starlette" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1b/e9/2065686d1dfa62296fdc158b6e8fd25b0cb3dca09b0632cabeb5ae81fe4d/prometheus_fastapi_instrumentator-8.0.2.tar.gz", hash = "sha256:3c252e748151768a7aefd66824a04a870144f71de48a67aed211749a9ca2a548", size = 21342, upload-time = "2026-06-23T09:39:31.611Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c6/c7/fa2b3f469a2e6001b829e0d6bc8680755349aa1329a87bf48731e9d5d30a/prometheus_fastapi_instrumentator-8.0.2-py3-none-any.whl", hash = "sha256:746002ec1e2c58b93f61444e1d104de959a9463a6a3f1c8909ac3757e16c3866", size = 20549, upload-time = "2026-06-23T09:39:32.616Z" },
+]
+
+[[package]]
 name = "prompt-toolkit"
 version = "3.0.52"
 source = { registry = "https://pypi.org/simple" }
@@ -4969,6 +4982,7 @@ notebooks = [
 serve = [
     { name = "fastapi" },
     { name = "mlflow-skinny" },
+    { name = "prometheus-fastapi-instrumentator" },
     { name = "pydantic" },
     { name = "uvicorn" },
 ]
@@ -5018,6 +5032,7 @@ notebooks = [
 serve = [
     { name = "fastapi" },
     { name = "mlflow-skinny", specifier = ">=3" },
+    { name = "prometheus-fastapi-instrumentator", specifier = ">=8.0.2" },
     { name = "pydantic" },
     { name = "uvicorn" },
 ]

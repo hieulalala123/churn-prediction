@@ -7,11 +7,21 @@ Run locally:  uvicorn src.serving.app:app --port 8000
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
+from prometheus_client import Histogram
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from src.serving.model import MODEL_NAME, ModelService
 from src.serving.schemas import CustomerFeatures, ModelInfo, PredictResponse
 
 service = ModelService()
+
+# Score-distribution histogram: drift of served probabilities over time is
+# the serving-side complement to the Evidently feature-drift check.
+PREDICTION_PROBABILITY = Histogram(
+    "churn_prediction_probability",
+    "Distribution of predicted churn probabilities",
+    buckets=[i / 10 for i in range(11)],
+)
 
 
 @asynccontextmanager
@@ -21,6 +31,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Telco Churn API", lifespan=lifespan)
+Instrumentator().instrument(app).expose(app)
 
 
 @app.get("/health")
@@ -46,6 +57,7 @@ def model_info():
 def predict(customer: CustomerFeatures):
     _require_loaded()
     proba, labels = service.predict(customer.to_frame())
+    PREDICTION_PROBABILITY.observe(proba[0])
     return PredictResponse(
         churn_probability=proba[0],
         churn=labels[0],

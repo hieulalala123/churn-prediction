@@ -32,6 +32,7 @@ serve = [
     "uvicorn",
     "mlflow-skinny>=3",
     "pydantic",
+    "prometheus-fastapi-instrumentator>=8.0.2",
 ]
 monitor = [
     "evidently>=0.7,<0.8",
