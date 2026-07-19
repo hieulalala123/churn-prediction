@@ -16,4 +16,8 @@ mlflow:
 # 0.5 default and the F2-optimal 0.295 on expected value.
 decision_threshold: 0.465
 
+# Promote quality gate: --promote only moves @champion if the new model's
+# holdout PR-AUC is within this relative regression of the current champion's.
+promote_max_regression: 0.02
+
 metrics_path: reports/metrics.json

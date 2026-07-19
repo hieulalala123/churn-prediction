@@ -36,6 +36,36 @@ CATEGORICAL_FEATURES = [
     "PaymentMethod",
 ]
 
+# Valid values per categorical feature in the cleaned dataset. The serving
+# schema's Literal types must match these exactly (asserted in tests) so an
+# out-of-vocabulary value is rejected at the API boundary instead of being
+# silently all-zeros-encoded by OneHotEncoder(handle_unknown="ignore").
+_YES_NO = ("Yes", "No")
+_INTERNET_ADDON = ("Yes", "No", "No internet service")
+CATEGORY_VALUES: dict[str, tuple[str, ...]] = {
+    "gender": ("Male", "Female"),
+    "SeniorCitizen": _YES_NO,
+    "Partner": _YES_NO,
+    "Dependents": _YES_NO,
+    "PhoneService": _YES_NO,
+    "MultipleLines": ("Yes", "No", "No phone service"),
+    "InternetService": ("DSL", "Fiber optic", "No"),
+    "OnlineSecurity": _INTERNET_ADDON,
+    "OnlineBackup": _INTERNET_ADDON,
+    "DeviceProtection": _INTERNET_ADDON,
+    "TechSupport": _INTERNET_ADDON,
+    "StreamingTV": _INTERNET_ADDON,
+    "StreamingMovies": _INTERNET_ADDON,
+    "Contract": ("Month-to-month", "One year", "Two year"),
+    "PaperlessBilling": _YES_NO,
+    "PaymentMethod": (
+        "Electronic check",
+        "Mailed check",
+        "Bank transfer (automatic)",
+        "Credit card (automatic)",
+    ),
+}
+
 
 def split_X_y(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
     X = df[NUMERIC_FEATURES + CATEGORICAL_FEATURES]

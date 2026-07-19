@@ -10,6 +10,13 @@ services:
       - "5000:5000"
     volumes:
       - ./mlflow-data:/mlflow
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   api:
     build:
@@ -22,8 +29,16 @@ services:
       - "8000:8000"
     volumes:
       - ./prediction-logs:/logs
+    restart: unless-stopped
     depends_on:
-      - mlflow
+      mlflow:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   prometheus:
     image: prom/prometheus:v3.2.1
@@ -31,6 +46,7 @@ services:
       - "9090:9090"
     volumes:
       - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    restart: unless-stopped
     depends_on:
       - api
 
@@ -39,9 +55,11 @@ services:
     ports:
       - "3000:3000"
     environment:
+      # Anonymous Admin is for local demo convenience ONLY — never in prod.
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
     volumes:
       - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+    restart: unless-stopped
     depends_on:
       - prometheus

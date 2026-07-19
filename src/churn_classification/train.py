@@ -64,6 +64,41 @@ def _file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _promote_if_not_worse(client, cfg: dict, version: str, metrics: dict[str, float]) -> bool:
+    """Quality gate: only move the serving alias if the new model's holdout
+    PR-AUC is not materially worse than the current champion's.
+
+    Without this, --promote (and the automated drift->retrain hook calling
+    it) would ship whatever the last run produced — including a model
+    trained on corrupted data. The current champion stays serving when the
+    gate refuses; a human can still promote manually via the MLflow UI.
+    """
+    import mlflow
+
+    registered_name = cfg["mlflow"]["registered_model_name"]
+    alias = cfg["mlflow"]["promote_alias"]
+    max_regression = float(cfg.get("promote_max_regression", 0.02))
+
+    try:
+        champion = client.get_model_version_by_alias(registered_name, alias)
+    except mlflow.exceptions.MlflowException:
+        champion = None  # no champion yet -> first promotion is free
+
+    if champion is not None and str(champion.version) != str(version):
+        champion_pr_auc = client.get_run(champion.run_id).data.metrics.get("pr_auc")
+        floor = champion_pr_auc * (1 - max_regression)
+        if metrics["pr_auc"] < floor:
+            print(
+                f"PROMOTE REFUSED: new pr_auc {metrics['pr_auc']:.4f} < floor {floor:.4f} "
+                f"(champion v{champion.version} pr_auc {champion_pr_auc:.4f}, "
+                f"max_regression {max_regression}). Champion unchanged."
+            )
+            return False
+
+    client.set_registered_model_alias(registered_name, alias, version)
+    return True
+
+
 def main(config_path: str | Path, promote: bool = False) -> str:
     cfg = load_config(config_path)
     threshold = float(cfg["decision_threshold"])
@@ -110,8 +145,7 @@ def main(config_path: str | Path, promote: bool = False) -> str:
     client = mlflow.MlflowClient()
     version = model_info.registered_model_version
     client.set_model_version_tag(registered_name, version, "decision_threshold", str(threshold))
-    if promote:
-        client.set_registered_model_alias(registered_name, cfg["mlflow"]["promote_alias"], version)
+    promoted = promote and _promote_if_not_worse(client, cfg, version, metrics)
 
     metrics_path = Path(cfg["metrics_path"])
     metrics_path.parent.mkdir(parents=True, exist_ok=True)
@@ -119,7 +153,7 @@ def main(config_path: str | Path, promote: bool = False) -> str:
 
     print(
         f"Run {run.info.run_id}: registered {registered_name} v{version}"
-        f"{' -> alias @' + cfg['mlflow']['promote_alias'] if promote else ''}"
+        f"{' -> alias @' + cfg['mlflow']['promote_alias'] if promoted else ''}"
     )
     print(json.dumps({k: round(v, 4) if isinstance(v, float) else v for k, v in metrics.items()}))
     return run.info.run_id

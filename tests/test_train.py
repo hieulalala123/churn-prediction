@@ -15,6 +15,7 @@ def tmp_config(tmp_path):
             "promote_alias": "champion",
         },
         "decision_threshold": 0.465,
+        "promote_max_regression": 0.02,
         "metrics_path": str(tmp_path / "metrics.json"),
     }
     path = tmp_path / "train.yaml"
@@ -40,3 +41,29 @@ def test_main_logs_run_and_registers_model(
     assert version.tags["decision_threshold"] == "0.465"
 
     assert (tmp_split_paths.parent / "metrics.json").exists()
+
+
+def test_promote_gate_refuses_worse_model(
+    tmp_config, clean_df_sample, tmp_split_paths, monkeypatch
+):
+    """A rerun whose PR-AUC collapses must NOT steal the @champion alias."""
+    config_path, cfg = tmp_config
+    monkeypatch.setattr(data_split, "load_clean", lambda: clean_df_sample)
+
+    train.main(config_path, promote=True)  # v1 becomes champion
+
+    real_evaluate = train.evaluate
+
+    def broken_evaluate(pipeline, X, y, threshold):
+        metrics = real_evaluate(pipeline, X, y, threshold)
+        metrics["pr_auc"] = 0.01
+        return metrics
+
+    monkeypatch.setattr(train, "evaluate", broken_evaluate)
+    train.main(config_path, promote=True)  # v2 registers but must not promote
+
+    client = mlflow.MlflowClient(tracking_uri=cfg["mlflow"]["tracking_uri"])
+    champion = client.get_model_version_by_alias("test-model", "champion")
+    assert str(champion.version) == "1"
+    versions = [str(v.version) for v in client.search_model_versions("name='test-model'")]
+    assert "2" in versions  # v2 exists, just not champion

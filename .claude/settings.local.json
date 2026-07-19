@@ -2,7 +2,16 @@
   "permissions": {
     "allow": [
       "Bash(.venv/bin/python3 --version)",
-      "Bash(.venv/bin/pip list *)"
+      "Bash(.venv/bin/pip list *)",
+      "Bash(.venv/bin/python3 -c \"import plotly; print\\(plotly.__version__\\)\")",
+      "Bash(python3 *)",
+      "Bash(mkdir -p notebooks/churn_classification src/data)",
+      "Bash(git mv *)",
+      "Bash(rm -rf notebooks/.ipynb_checkpoints)",
+      "Bash(.venv/bin/python3 *)",
+      "Bash(../../.venv/bin/jupyter nbconvert *)",
+      "Bash(../../.venv/bin/jupyter execute *)",
+      "Bash(.venv/bin/jupyter kernelspec *)"
     ]
   }
 }

@@ -1,8 +1,14 @@
+import typing
+
 import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
-from src.churn_classification.preprocessing import CATEGORICAL_FEATURES, NUMERIC_FEATURES
+from src.churn_classification.preprocessing import (
+    CATEGORICAL_FEATURES,
+    CATEGORY_VALUES,
+    NUMERIC_FEATURES,
+)
 from src.serving import app as app_module
 from src.serving.schemas import CustomerFeatures
 
@@ -54,6 +60,23 @@ def test_schema_matches_feature_lists():
     assert set(CustomerFeatures.model_fields) == set(NUMERIC_FEATURES + CATEGORICAL_FEATURES)
 
 
+def test_schema_literals_match_dataset_categories():
+    """The Literal types are the API's guard against silent all-zeros OHE
+    encoding — they must stay in sync with the dataset's actual categories.
+    """
+    for feature, expected in CATEGORY_VALUES.items():
+        annotation = CustomerFeatures.model_fields[feature].annotation
+        assert set(typing.get_args(annotation)) == set(expected), feature
+
+
+def test_predict_invalid_category_is_422(client):
+    """ "Fiber" (not "Fiber optic") must be rejected at the boundary, not
+    silently encoded as an all-zeros unknown category.
+    """
+    resp = client().post("/predict", json={**VALID_CUSTOMER, "InternetService": "Fiber"})
+    assert resp.status_code == 422
+
+
 def test_predict_happy_path(client):
     resp = client(proba=0.9).post("/predict", json=VALID_CUSTOMER)
     assert resp.status_code == 200
@@ -82,6 +105,16 @@ def test_health(client):
     body = client().get("/health").json()
     assert body["status"] == "ok"
     assert body["model_version"] == "stub-1"
+
+
+def test_reload_endpoint(client, monkeypatch):
+    c = client()
+    calls = []
+    monkeypatch.setattr(app_module.service, "load", lambda: calls.append(1))
+    resp = c.post("/reload")
+    assert resp.status_code == 200
+    assert calls == [1]
+    assert resp.json()["model_version"] == "stub-1"
 
 
 def test_prediction_logging(client, tmp_path, monkeypatch):
