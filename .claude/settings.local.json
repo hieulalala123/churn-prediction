@@ -11,7 +11,18 @@
       "Bash(.venv/bin/python3 *)",
       "Bash(../../.venv/bin/jupyter nbconvert *)",
       "Bash(../../.venv/bin/jupyter execute *)",
-      "Bash(.venv/bin/jupyter kernelspec *)"
+      "Bash(.venv/bin/jupyter kernelspec *)",
+      "Skill(run)",
+      "Bash(uv run *)",
+      "Bash(rm -rf /tmp/dbg_test)",
+      "Bash(mkdir -p /tmp/dbg_test/db_a /tmp/dbg_test/split_a /tmp/dbg_test/db_b /tmp/dbg_test/split_b)",
+      "Bash(rm -rf /tmp/dbg2)",
+      "Bash(mkdir -p /tmp/dbg2)",
+      "Bash(curl *)",
+      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; cat {}')",
+      "Bash(docker compose *)",
+      "Bash(git status *)",
+      "Bash(jupyter nbconvert *)"
     ]
   }
 }

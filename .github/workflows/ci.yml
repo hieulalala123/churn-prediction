@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, ds-classification, mlops]
+    branches: [main, ds-classification, mlops, survival-analysis]
   pull_request:
     branches: [main]
 

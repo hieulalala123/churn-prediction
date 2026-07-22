@@ -12,7 +12,7 @@ Hướng dẫn làm việc trong repo này. Đọc trước khi sửa code trong
 
 File: `data/WA_Fn-UseC_-Telco-Customer-Churn.csv` — 7043 dòng, 21 cột.
 
-Đã xác nhận từ EDA trong `notebooks/classification.ipynb`:
+Đã xác nhận từ EDA trong `notebooks/churn_classification/01_business_and_data_understanding.ipynb`:
 - `customerID`: định danh, không có giá trị dự đoán — đã drop.
 - `TotalCharges`: đọc vào là `object` do có 11 dòng chuỗi rỗng, cần `pd.to_numeric(errors='coerce')`. 11 dòng này trùng với 11 dòng có `tenure == 0` (khách mới, chưa có billing cycle) — hợp lý để loại khỏi tập train vì không đại diện cho pattern churn thực sự, không phải missing-at-random cần impute.
 - `SeniorCitizen`: encode dạng 0/1, nên map về "No"/"Yes" cho nhất quán với các cột categorical binary khác trước khi encode lại cho model.
@@ -52,7 +52,7 @@ Phần MLOps đã triển khai (chi tiết vận hành trong `docs/mlops.md`): t
 
 ## Môi trường & quy ước MLOps
 
-- **`uv`** quản lý deps qua `pyproject.toml` + `uv.lock` (không còn requirements.txt). Groups: `dev`/`train`/`serve`/`monitor`/`notebooks`. `make setup` = `uv sync --all-groups`.
+- **`uv`** quản lý deps qua `pyproject.toml` + `uv.lock` (không còn requirements.txt). Groups: `dev`/`train`/`serve`/`monitor`/`survival`/`notebooks`. `make setup` = `uv sync --all-groups`.
 - **Python pin 3.12** (`.python-version`, Docker) vì shap→numba/llvmlite chưa có wheel 3.14 — xem `docs/mlops.md` phần tương thích.
 - Mọi thao tác thường dùng đều có Make target — xem runbook trong `docs/mlops.md`.
 - Model artifacts nằm trong MLflow registry (`mlflow.db`/`mlruns` local hoặc container `mlflow-data/`), **không** commit vào git; `models/` không dùng.

@@ -26,7 +26,10 @@ flowchart LR
         LOG --> DRIFT[drift.py<br/>Evidently vs train reference]
         DRIFT -- exit 1 --> RETRAIN[retrain_if_drift.sh<br/>train --promote + /reload]
         RETRAIN --> MLF
-        METRICS --> PROM[Prometheus] --> GRAF[Grafana dashboard]
+        DRIFT -- push drift_share --> PUSHGW[Pushgateway]
+        METRICS --> PROM[Prometheus]
+        PUSHGW --> PROM
+        PROM --> GRAF[Grafana dashboard]
     end
 ```
 
@@ -45,6 +48,8 @@ Decision threshold **0.465** — không phải 0.5:
 
 **Prometheus + Grafana: CÓ.** Evidently cover chiều *data* (phân phối feature vào model); Prometheus cover chiều *serving* (latency, RPS, và phân phối *score* đầu ra qua histogram `churn_prediction_probability`). Hai chiều bổ sung nhau — score distribution dịch chuyển trên Grafana là tín hiệu sớm ngay cả khi feature drift chưa vượt ngưỡng.
 
+**Pushgateway: CÓ (bắt buộc, không phải thừa).** Drift check là batch job — chạy vài giây rồi thoát, nên Prometheus (pull-based, scrape theo chu kỳ) không bao giờ bắt kịp để scrape nó. `drift.py` push `drift_share` một lần vào Pushgateway (`job="drift_check"`), Prometheus scrape Pushgateway thay vì scrape job. Không có nó thì kết quả drift không bao giờ tới được Grafana. Lưu ý cấu hình: `make check-drift` chạy ngoài docker network nên `pushgateway_url` trong `configs/monitoring.yaml` là port host-published (`localhost:9091`), không phải hostname in-network `pushgateway:9091`.
+
 **MLflow alias thay vì stage.** Model stages đã deprecated từ MLflow 2.9; promote bằng alias `@champion`, serving resolve `models:/telco-churn-catboost@champion` nên retrain+promote không cần restart API (đã có `POST /reload`).
 
 ## Runbook
@@ -57,7 +62,7 @@ Decision threshold **0.465** — không phải 0.5:
 | `make train-promote` | Train + gán alias `@champion` cho version mới |
 | `make mlflow-ui` | MLflow UI trên sqlite local (port 5000) |
 | `make serve` | uvicorn local (cần `MLFLOW_TRACKING_URI`) |
-| `make compose-up` | mlflow + api + prometheus + grafana (ports 5000/8000/9090/3000) |
+| `make compose-up` | mlflow + api + pushgateway + prometheus + grafana (ports 5000/8000/9091/9090/3000) |
 | `make check-drift` | Drift check; exit 1 nếu >30% cột drift |
 | `make simulate-drift` | Bắn traffic drift giả vào API (demo) |
 | `make retrain-if-drift` | check → retrain+promote → `/reload` nếu drift |
@@ -82,11 +87,11 @@ Ghi lại vì đây là những lỗi **chỉ lộ ra khi chạy trong Docker**,
 
 Toàn bộ stack đã chạy và kiểm chứng end-to-end trên Docker compose:
 
-- [x] `make setup` / lint / format / pre-commit / 24 pytest — xanh
+- [x] `make setup` / lint / format / pre-commit / 30 pytest — xanh
 - [x] `make train-promote` — holdout PR-AUC 0.6365 / ROC-AUC 0.8369, **khớp chính xác notebook 04**; chạy 2 lần metrics giống hệt (deterministic)
 - [x] `dvc repro` idempotent, `dvc pull` khôi phục data đã xóa (trên máy tác giả, nơi remote `local` tồn tại), metrics qua `dvc metrics show`
 - [x] Clone sạch trên máy khác (2026-07-22): `dvc pull` fail đúng như dự đoán ("Checkout failed") vì remote là path tuyệt đối local; `make download-data` → `dvc repro` → `docker compose up -d --build` chạy đúng từ đầu, `/predict` trả kết quả, PR-AUC khớp 0.6365
-- [x] Compose 4 services up: mlflow (5000), api (8000), prometheus (9090), grafana (3000)
+- [x] Compose 5 services up: mlflow (5000), api (8000), pushgateway (9091), prometheus (9090), grafana (3000)
 - [x] API load `@champion` từ registry container, threshold 0.465 từ tag; high-risk → 0.906/churn, low-risk → 0.019/không
 - [x] Prometheus target `churn-api` up, scrape histogram `churn_prediction_probability`; Grafana dashboard 3 panels provisioned
 - [x] Vòng tự động hoàn chỉnh trên Docker: simulate drift → check phát hiện (drifted_share 0.42 > 0.3) → retrain → promote v2 `@champion` → `POST /reload` → API serve v2 không cần restart
