@@ -26,12 +26,18 @@ từ CRISP-ML(Q) notebook analysis đến một MLOps stack chạy được bằ
 
 ```bash
 make setup                 # uv sync --all-groups (cần uv + Python 3.12)
-uv run dvc pull            # lấy data (DVC remote)
+make download-data         # tải data/WA_Fn-UseC_-Telco-Customer-Churn.csv từ Kaggle (kagglehub, không cần API key)
 docker compose up -d mlflow
 MLFLOW_TRACKING_URI=http://127.0.0.1:5000 make train-promote
 docker compose up -d --build
 curl localhost:8000/docs   # API; Grafana :3000, MLflow :5000, Prometheus :9090
 ```
+
+`uv run dvc pull` **chỉ dùng được nếu bạn tự cấu hình remote DVC của riêng mình** —
+`.dvc/config` trong repo trỏ về một remote kiểu `local` (đường dẫn tuyệt đối trên máy
+tác giả), không phải remote chia sẻ được. `make download-data` là cách lấy data đúng
+cho một checkout mới; sau đó `dvc repro`/`make train-promote` tự tạo lại
+`data/processed/` từ file CSV đó.
 
 Toàn bộ lệnh vận hành (train, drift check, retrain hook, ...) xem runbook trong [`docs/mlops.md`](docs/mlops.md).
 

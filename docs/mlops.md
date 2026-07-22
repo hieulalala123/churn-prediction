@@ -62,9 +62,12 @@ Decision threshold **0.465** — không phải 0.5:
 | `make simulate-drift` | Bắn traffic drift giả vào API (demo) |
 | `make retrain-if-drift` | check → retrain+promote → `/reload` nếu drift |
 | `uv run dvc repro` | Chạy lại pipeline split→train nếu deps đổi |
-| `uv run dvc pull` | Khôi phục data từ DVC remote (`~/dvc-remote/telco-churn`) |
+| `make download-data` | Tải `data/WA_Fn-UseC_-Telco-Customer-Churn.csv` từ Kaggle qua `kagglehub` (public dataset, không cần API key) |
+| `uv run dvc pull` | Khôi phục data từ DVC remote — **chỉ hoạt động trên máy tác giả**: remote hiện là `local` (`~/dvc-remote/telco-churn`), một thư mục trên đĩa của tác giả, không phải remote chia sẻ được (S3/GCS/...). Trên máy khác `dvc pull` sẽ báo lỗi "Checkout failed" — dùng `make download-data` thay thế |
 
-Quy trình chuẩn từ zero: `make setup` → `uv run dvc pull` → `make train-promote` → `make compose-up` (train lại với `MLFLOW_TRACKING_URI=http://127.0.0.1:5000` để registry nằm trong container mlflow) → curl `localhost:8000/predict`.
+Quy trình chuẩn từ zero (máy của tác giả, đã có remote): `make setup` → `uv run dvc pull` → `make train-promote` → `make compose-up`.
+
+Quy trình từ một checkout mới trên máy khác (đã kiểm chứng 2026-07-22 bằng clone sạch): `make setup` → `make download-data` → `docker compose up -d mlflow` → `MLFLOW_TRACKING_URI=http://127.0.0.1:5000 make train-promote` (tự tạo `data/processed/` từ CSV vừa tải, qua `get_split()`) → `docker compose up -d --build` → curl `localhost:8000/predict`.
 
 Lưu ý vòng retrain: `retrain_if_drift.sh` là manual-trigger có chủ đích — trong production thì lịch chạy (cron/Airflow) + alerting sẽ thay thế, và "retrain ngay khi drift" thường cần người duyệt vì drift có thể do lỗi upstream data chứ không phải thay đổi hành vi khách hàng thật.
 
@@ -81,7 +84,8 @@ Toàn bộ stack đã chạy và kiểm chứng end-to-end trên Docker compose:
 
 - [x] `make setup` / lint / format / pre-commit / 24 pytest — xanh
 - [x] `make train-promote` — holdout PR-AUC 0.6365 / ROC-AUC 0.8369, **khớp chính xác notebook 04**; chạy 2 lần metrics giống hệt (deterministic)
-- [x] `dvc repro` idempotent, `dvc pull` khôi phục data đã xóa, metrics qua `dvc metrics show`
+- [x] `dvc repro` idempotent, `dvc pull` khôi phục data đã xóa (trên máy tác giả, nơi remote `local` tồn tại), metrics qua `dvc metrics show`
+- [x] Clone sạch trên máy khác (2026-07-22): `dvc pull` fail đúng như dự đoán ("Checkout failed") vì remote là path tuyệt đối local; `make download-data` → `dvc repro` → `docker compose up -d --build` chạy đúng từ đầu, `/predict` trả kết quả, PR-AUC khớp 0.6365
 - [x] Compose 4 services up: mlflow (5000), api (8000), prometheus (9090), grafana (3000)
 - [x] API load `@champion` từ registry container, threshold 0.465 từ tag; high-risk → 0.906/churn, low-risk → 0.019/không
 - [x] Prometheus target `churn-api` up, scrape histogram `churn_prediction_probability`; Grafana dashboard 3 panels provisioned

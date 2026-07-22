@@ -1,8 +1,11 @@
-.PHONY: setup lint fmt test cov train train-promote mlflow-ui serve compose-up compose-down \
+.PHONY: setup download-data lint fmt test cov train train-promote mlflow-ui serve compose-up compose-down \
 	check-drift simulate-drift retrain-if-drift
 
 setup:
 	uv sync --all-groups
+
+download-data:
+	uv run python download_dataset.py
 
 lint:
 	uv run ruff check src/ tests/
