@@ -24,3 +24,6 @@ catboost_info/
 # Bỏ qua file chứa mật khẩu, API key (cực kỳ quan trọng để bảo mật!)
 .env
 *.local
+
+# Jupyter autosave checkpoints — không liên quan code
+.ipynb_checkpoints/
