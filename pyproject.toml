@@ -40,6 +40,11 @@ monitor = [
     "pyarrow",
     "prometheus-client",
 ]
+# src/survival_analysis/ + tests/test_survival_model.py need only lifelines,
+# no numba/llvmlite chain — kept out of `notebooks` so it installs on 3.14.
+survival = [
+    "lifelines",
+]
 notebooks = [
     "jupyter",
     "matplotlib",
@@ -55,7 +60,6 @@ notebooks = [
     "optuna",
     "shap>=0.46",
     "numba>=0.60",
-    "lifelines",
     "scikit-survival",
 ]
 

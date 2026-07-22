@@ -14,7 +14,8 @@ từ CRISP-ML(Q) notebook analysis đến một MLOps stack chạy được bằ
 | Đường dẫn | Nội dung |
 |---|---|
 | `notebooks/churn_classification/` | 5 notebooks CRISP-ML(Q): EDA → data prep → modeling → evaluation → business value & SHAP |
-| `src/` | Module tái sử dụng: data loading, preprocessing, persisted split, final model, `train.py`, serving, monitoring |
+| `notebooks/survival_analysis/` | Pha mở rộng: time-to-churn (Kaplan-Meier, Cox PH) — bổ sung "khi nào" cho model classification "có/không", xem `docs/docs.md` |
+| `src/` | Module tái sử dụng: data loading, preprocessing, persisted split, final model, `train.py`, serving, monitoring, `survival_analysis/` (Cox PH) |
 | `configs/` | `train.yaml` (MLflow, threshold), `monitoring.yaml` (drift) |
 | `tests/` + `.github/workflows/` | pytest (fixtures synthetic, không cần data thật) + CI matrix Python 3.12/3.14 |
 | `docker/` + `docker-compose.yml` | mlflow, api, prometheus, grafana |

@@ -5170,7 +5170,6 @@ notebooks = [
     { name = "ipywidgets" },
     { name = "jupyter" },
     { name = "kagglehub" },
-    { name = "lifelines" },
     { name = "lightgbm" },
     { name = "lime" },
     { name = "matplotlib" },
@@ -5192,6 +5191,9 @@ serve = [
     { name = "pydantic" },
     { name = "skops" },
     { name = "uvicorn" },
+]
+survival = [
+    { name = "lifelines" },
 ]
 train = [
     { name = "mlflow" },
@@ -5225,7 +5227,6 @@ notebooks = [
     { name = "ipywidgets", specifier = ">=7.6.0" },
     { name = "jupyter" },
     { name = "kagglehub" },
-    { name = "lifelines" },
     { name = "lightgbm" },
     { name = "lime" },
     { name = "matplotlib" },
@@ -5247,6 +5248,7 @@ serve = [
     { name = "skops", specifier = ">=0.14.0" },
     { name = "uvicorn" },
 ]
+survival = [{ name = "lifelines" }]
 train = [
     { name = "mlflow", specifier = ">=3" },
     { name = "pyyaml" },

@@ -31,7 +31,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: uv sync --group dev --group train --group serve
+      - run: uv sync --group dev --group train --group serve --group survival
       - run: uv run pytest --cov=src --cov-report=term
 
   docker-build:

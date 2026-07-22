@@ -361,3 +361,43 @@ feature khác của từng khách (tương tác thật), không đồng nhất t
 
 Thêm `optuna`, `shap`, `lime` vào `requirements.txt` (không có trong bản gốc). Cài `shap` làm numpy hạ từ
 2.5.1 xuống 2.4.6 — đã verify toàn bộ pipeline (pandas/sklearn/catboost) vẫn chạy đúng sau khi hạ cấp.
+
+---
+
+## Pha mở rộng — Survival Analysis (time-to-churn)
+
+Pha 1 đã chốt rõ: bài toán chính là classification tại 1 thời điểm snapshot, **không phải** time-to-event
+(xem Pha 1.1). Pha mở rộng này trả lời thêm câu hỏi "nếu rời đi thì khi nào", bổ sung cho câu hỏi "có rời đi
+không" đã có — không thay thế model classification, không tích hợp vào serving/registry (xem quyết định
+cuối mục dưới). Toàn bộ phân tích ở `notebooks/survival_analysis/survival_analysis.ipynb`; lý thuyết nền ở
+`docs/survival_analysis_theory.md`; model tái sử dụng ở `src/survival_analysis/cox_model.py`.
+
+**Duration/event**: `tenure` (số tháng đã là khách) làm duration, `Churn == "Yes"` làm event; khách còn ở
+lại (`Churn == "No"`) là right-censored — chỉ biết họ "sống" ít nhất đến `tenure` hiện tại.
+
+**So sánh model** (non-parametric KM/Nelson-Aalen làm baseline mô tả, không dùng để so sánh vì không có
+covariates):
+
+| Model | Metric | Giá trị |
+|---|---|---|
+| Exponential / Weibull / Log-Logistic (no covariates) | AIC | 21696.97 / 21156.57 / 21139.91 |
+| Weibull AFT (có covariates) | log-likelihood | -8915.63 |
+| **Cox PH (có covariates, không stratify)** | **concordance** | **0.8663** |
+| Cox PH (stratified by `Contract`) | concordance | 0.7205 |
+
+**Model chọn: Cox PH không stratify.** Concordance cao nhất, giả định phân phối nhẹ hơn Weibull AFT, hệ số
+(hazard ratio) dễ diễn giải cho business. `Contract` vi phạm giả định proportional hazards (p < 5e-05,
+`check_assumptions`) — cách sách vở khuyên là `strata=['Contract']`, nhưng làm vậy loại `Contract` (yếu tố
+chi phối tốc độ churn, xác nhận bằng log-rank test) khỏi linear predictor và làm rơi concordance xuống
+0.7205. Với mục tiêu là diễn giải business chứ không phải suy luận thống kê chặt chẽ về hazard ratio không
+đổi, đánh đổi đó không đáng — vi phạm PH của `Contract` được **ghi nhận là giới hạn đã biết** thay vì xử lý.
+9 covariate vi phạm nhẹ hơn còn lại cũng để nguyên vì cùng lý do.
+
+**Phát hiện chính dùng được cho retention**: khách `Contract=Month-to-month` có hazard cao nhất và tập
+trung ở giai đoạn đầu vòng đời (khớp với PDP theo `tenure` ở Pha 5.2: rủi ro giảm dốc nhất ở 0–20 tháng) —
+gợi ý một cửa sổ can thiệp cụ thể (vài tháng đầu) thay vì rải đều ưu đãi theo tenure.
+
+**Quyết định phạm vi**: không tích hợp vào FastAPI serving/MLflow registry — đây là một phân tích bổ sung
+(exploratory extension), không phải model production thứ hai. Random Survival Forest (`scikit-survival`,
+có sẵn trong dependency group `notebooks`) là hướng mở rộng hợp lý tiếp theo, cố ý để ngoài phạm vi hiện
+tại.
