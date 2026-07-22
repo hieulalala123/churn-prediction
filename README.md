@@ -19,7 +19,8 @@ từ CRISP-ML(Q) notebook analysis đến một MLOps stack chạy được bằ
 | `configs/` | `train.yaml` (MLflow, threshold), `monitoring.yaml` (drift) |
 | `tests/` + `.github/workflows/` | pytest (fixtures synthetic, không cần data thật) + CI matrix Python 3.12/3.14 |
 | `docker/` + `docker-compose.yml` | mlflow, api, prometheus, grafana |
-| `docs/docs.md` | Writeup data science theo từng pha |
+| `docs/docs.md` | Writeup data science theo từng pha (quyết định + lý do) |
+| `docs/research_report.md` | Báo cáo kết quả + insight (không lặp lại quyết định, chỉ số liệu và phát hiện) |
 | `docs/mlops.md` | Kiến trúc MLOps, runbook, design decisions, integration gotchas |
 
 ## Chạy nhanh

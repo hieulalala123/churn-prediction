@@ -391,7 +391,7 @@ covariates):
 chi phối tốc độ churn, xác nhận bằng log-rank test) khỏi linear predictor và làm rơi concordance xuống
 0.7205. Với mục tiêu là diễn giải business chứ không phải suy luận thống kê chặt chẽ về hazard ratio không
 đổi, đánh đổi đó không đáng — vi phạm PH của `Contract` được **ghi nhận là giới hạn đã biết** thay vì xử lý.
-9 covariate vi phạm nhẹ hơn còn lại cũng để nguyên vì cùng lý do.
+8 covariate vi phạm nhẹ hơn còn lại cũng để nguyên vì cùng lý do.
 
 **Phát hiện chính dùng được cho retention**: khách `Contract=Month-to-month` có hazard cao nhất và tập
 trung ở giai đoạn đầu vòng đời (khớp với PDP theo `tenure` ở Pha 5.2: rủi ro giảm dốc nhất ở 0–20 tháng) —
