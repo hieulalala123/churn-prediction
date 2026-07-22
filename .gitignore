@@ -27,3 +27,10 @@ catboost_info/
 
 # Jupyter autosave checkpoints — không liên quan code
 .ipynb_checkpoints/
+
+# Cache của tool, tái tạo được
+.pytest_cache/
+.ruff_cache/
+
+# Allowlist quyền của Claude Code — đặc thù từng máy, không commit
+.claude/settings.local.json

@@ -118,8 +118,6 @@ flowchart LR
 | `docs/research_report.md` | Báo cáo kết quả + insight (số liệu và phát hiện, không lặp lại lý do) | Nguồn cho phần "Tóm tắt kết quả" ở trên |
 | `docs/mlops.md` | Kiến trúc MLOps, runbook, design decisions, integration gotchas | Tham khảo khi vận hành stack |
 | `docs/survival_analysis_theory.md` | Lý thuyết survival analysis (duration, censoring, hazard, KM/Cox) | Nền tảng lý thuyết cho phần mở rộng |
-| `docs/interview-qa.md` | Q&A chuẩn bị phỏng vấn dựa trên project này | Tài liệu cá nhân, không phải doc kỹ thuật của repo |
-| `system-design.drawio` | Sơ đồ kiến trúc hệ thống (mở bằng draw.io/diagrams.net) | Bản vẽ gốc, tương ứng với sơ đồ mermaid ở trên |
 | `Makefile` | Toàn bộ lệnh vận hành (setup, train, test, serve, drift, ...) | Điểm vào chuẩn cho mọi thao tác — xem chi tiết bằng `cat Makefile` |
 | `LICENSE` | Giấy phép sử dụng mã nguồn | — |
 
