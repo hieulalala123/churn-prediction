@@ -20,11 +20,36 @@ import pandas as pd
 import yaml
 from evidently import Report
 from evidently.presets import DataDriftPreset
+from prometheus_client import CollectorRegistry, Gauge, push_to_gateway
 
 from src.churn_classification.data_split import get_split
 from src.churn_classification.preprocessing import CATEGORICAL_FEATURES, NUMERIC_FEATURES
 
 FEATURES = NUMERIC_FEATURES + CATEGORICAL_FEATURES
+
+
+def _push_metrics(summary: dict, pushgateway_url: str) -> None:
+    """Push a snapshot of this run's drift result to Pushgateway, so
+    Prometheus/Grafana can see it — without this, drift results only ever
+    live in the JSON/HTML files under reports/drift/, invisible on the
+    dashboard. Best-effort: a batch job with no serving traffic yet (or the
+    stack not running) must not fail the drift check over this.
+    """
+    registry = CollectorRegistry()
+    Gauge(
+        "churn_drift_share",
+        "Share of feature columns flagged as drifted in the last check",
+        registry=registry,
+    ).set(summary["drifted_share"])
+    Gauge(
+        "churn_drift_detected",
+        "1 if the last drift check exceeded drift_share_threshold, else 0",
+        registry=registry,
+    ).set(int(summary["drift_detected"]))
+    try:
+        push_to_gateway(pushgateway_url, job="drift_check", registry=registry)
+    except OSError as e:
+        print(f"Warning: could not push drift metrics to {pushgateway_url}: {e}")
 
 
 def run_drift_check(current: pd.DataFrame, drift_share: float, report_dir: Path) -> dict:
@@ -72,6 +97,7 @@ def main() -> int:
         report_dir=Path(cfg["report_dir"]),
     )
     print(json.dumps(summary, indent=2))
+    _push_metrics(summary, cfg.get("pushgateway_url", "http://localhost:9091"))
     return 1 if summary["drift_detected"] else 0
 
 

@@ -40,6 +40,15 @@ services:
       retries: 3
       start_period: 30s
 
+  pushgateway:
+    # Batch jobs (drift check) don't run long enough for Prometheus to scrape
+    # them directly — they push a snapshot here once, and Prometheus scrapes
+    # this gateway instead. Without it, drift results never reach Grafana.
+    image: prom/pushgateway:v1.11.0
+    ports:
+      - "9091:9091"
+    restart: unless-stopped
+
   prometheus:
     image: prom/prometheus:v3.2.1
     ports:
@@ -49,6 +58,7 @@ services:
     restart: unless-stopped
     depends_on:
       - api
+      - pushgateway
 
   grafana:
     image: grafana/grafana:11.5.2

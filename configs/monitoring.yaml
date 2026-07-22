@@ -8,3 +8,9 @@ drift_share: 0.3
 
 current_data: prediction-logs/predictions.csv
 report_dir: reports/drift
+
+# Pushgateway the drift check reports to (see docker-compose.yml). The check
+# runs as a one-off CLI process (make check-drift), not inside the docker
+# network, so this is the host-published port, not the "pushgateway:9091"
+# in-network hostname.
+pushgateway_url: http://localhost:9091

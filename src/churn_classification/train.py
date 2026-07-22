@@ -34,6 +34,14 @@ from src.churn_classification.data_split import RANDOM_STATE, get_split
 from src.churn_classification.final_model import BEST_PARAMS, build_final_pipeline
 from src.churn_classification.preprocessing import compute_scale_pos_weight, split_X_y
 
+# Captured once at import time, before any mlflow.set_tracking_uri() call can
+# run. mlflow.set_tracking_uri() sets this same env var as a side effect (so
+# subprocesses inherit it) — reading os.environ live inside main() would pick
+# up that leftover value from a previous main() call in the same process
+# (e.g. two tests, or a notebook retraining twice) instead of the config's
+# own tracking_uri, silently pointing a later call at an earlier run's store.
+_ENV_MLFLOW_TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI")
+
 
 def load_config(path: str | Path) -> dict:
     with open(path) as f:
@@ -114,7 +122,7 @@ def main(config_path: str | Path, promote: bool = False) -> str:
 
     # Env var wins over config so `MLFLOW_TRACKING_URI=http://... make train-promote`
     # can target the docker-compose registry without editing the yaml.
-    mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI", cfg["mlflow"]["tracking_uri"]))
+    mlflow.set_tracking_uri(_ENV_MLFLOW_TRACKING_URI or cfg["mlflow"]["tracking_uri"])
     mlflow.set_experiment(cfg["mlflow"]["experiment_name"])
     registered_name = cfg["mlflow"]["registered_model_name"]
 

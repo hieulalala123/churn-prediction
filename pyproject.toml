@@ -38,6 +38,7 @@ serve = [
 monitor = [
     "evidently>=0.7,<0.8",
     "pyarrow",
+    "prometheus-client",
 ]
 notebooks = [
     "jupyter",
@@ -54,6 +55,8 @@ notebooks = [
     "optuna",
     "shap>=0.46",
     "numba>=0.60",
+    "lifelines",
+    "scikit-survival",
 ]
 
 [build-system]

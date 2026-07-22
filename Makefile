@@ -32,6 +32,10 @@ serve:
 		uv run uvicorn src.serving.app:app --port 8000
 
 compose-up:
+	# Pre-create bind-mount sources as the host user first — otherwise Docker
+	# auto-creates missing ones as root, and the api container (non-root
+	# appuser) can't write predictions.csv into a root-owned prediction-logs/.
+	mkdir -p prediction-logs mlflow-data
 	docker compose up -d --build
 
 compose-down:

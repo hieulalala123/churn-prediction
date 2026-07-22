@@ -7,7 +7,7 @@ Run locally:  uvicorn src.serving.app:app --port 8000
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
-from prometheus_client import Histogram
+from prometheus_client import Counter, Histogram
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from src.serving.model import MODEL_NAME, ModelService
@@ -21,6 +21,15 @@ PREDICTION_PROBABILITY = Histogram(
     "churn_prediction_probability",
     "Distribution of predicted churn probabilities",
     buckets=[i / 10 for i in range(11)],
+)
+
+# Business-facing counterpart to the probability histogram above: lets
+# Grafana show "% of served customers predicted to churn" directly, instead
+# of everyone having to eyeball a probability distribution.
+PREDICTIONS_TOTAL = Counter(
+    "churn_predictions_total",
+    "Total predictions served, by predicted churn label",
+    ["predicted_churn"],
 )
 
 
@@ -58,6 +67,7 @@ def predict(customer: CustomerFeatures):
     _require_loaded()
     proba, labels = service.predict(customer.to_frame())
     PREDICTION_PROBABILITY.observe(proba[0])
+    PREDICTIONS_TOTAL.labels(predicted_churn=str(labels[0])).inc()
     return PredictResponse(
         churn_probability=proba[0],
         churn=labels[0],
