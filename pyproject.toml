@@ -1,0 +1,86 @@
+[project]
+name = "telco-churn"
+version = "0.1.0"
+description = "Telco customer churn classification with a local MLOps stack (MLflow, FastAPI, DVC, Evidently)"
+requires-python = ">=3.12,<3.15"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "catboost",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "ruff",
+    "pre-commit",
+    "httpx",
+    "pyyaml",
+    "dvc>=3.67.1",
+]
+# train.py needs only mlflow+pyyaml; optuna/shap live in the notebooks group
+# (used only in notebooks 03/05), keeping this group installable on 3.14
+# where shap's numba/llvmlite chain has no wheels yet.
+train = [
+    "mlflow>=3",
+    "pyyaml",
+]
+serve = [
+    "fastapi",
+    "uvicorn",
+    "mlflow-skinny>=3",
+    "pydantic",
+    "prometheus-fastapi-instrumentator>=8.0.2",
+    "skops>=0.14.0",
+]
+monitor = [
+    "evidently>=0.7,<0.8",
+    "pyarrow",
+    "prometheus-client",
+]
+# src/survival_analysis/ + tests/test_survival_model.py need only lifelines,
+# no numba/llvmlite chain — kept out of `notebooks` so it installs on 3.14.
+survival = [
+    "lifelines",
+]
+notebooks = [
+    "jupyter",
+    "matplotlib",
+    "seaborn",
+    "missingno",
+    "ipywidgets>=7.6.0",
+    "plotly",
+    "lightgbm",
+    "xgboost",
+    "lime",
+    "nbformat>=4.2.0",
+    "kagglehub",
+    "optuna",
+    "shap>=0.46",
+    "numba>=0.60",
+    "scikit-survival",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["notebooks"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.uv]
+default-groups = ["dev"]

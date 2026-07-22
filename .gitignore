@@ -1,8 +1,29 @@
 # Bỏ qua thư mục thư viện (rất nặng, ai tải về tự cài sau)
 venv/
+.venv/
 __pycache__/
+*.egg-info/
+
+# MLflow local backend + artifacts (tái tạo được bằng make train)
+mlflow.db
+mlruns/
+mlflow-data/
+
+# Prediction log từ serving API (input cho drift monitoring, không commit)
+prediction-logs/
+
+# Báo cáo tự sinh (metrics.json do DVC track, drift HTML tái tạo được)
+reports/drift/
+
+# Derived data artifacts — regenerable từ data/raw + code (seed cố định), không commit
+data/processed/
+
+# Log tự sinh của CatBoost moi lan train, khong lien quan code
+catboost_info/
 
 # Bỏ qua file chứa mật khẩu, API key (cực kỳ quan trọng để bảo mật!)
 .env
 *.local
 
+# Jupyter autosave checkpoints — không liên quan code
+.ipynb_checkpoints/

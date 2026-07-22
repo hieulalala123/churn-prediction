@@ -1,0 +1,54 @@
+schema: '2.0'
+stages:
+  split:
+    cmd: uv run python -c "from src.churn_classification.data_split import
+      get_split; get_split()"
+    deps:
+    - path: data/WA_Fn-UseC_-Telco-Customer-Churn.csv
+      hash: md5
+      md5: 0f9de68e012bd3aed5fa7cdc9fc421af
+      size: 977501
+    - path: src/churn_classification/data_split.py
+      hash: md5
+      md5: 7b4ec30bce67c020d5f07e9750399198
+      size: 2360
+    - path: src/data/loader.py
+      hash: md5
+      md5: d09102aadec6fa436e0a4b2d954b947b
+      size: 1851
+    outs:
+    - path: data/processed/churn_classification
+      hash: md5
+      md5: d56f4218e040d8cbdfe6e97504b46880.dir
+      size: 978598
+      nfiles: 2
+  train:
+    cmd: uv run python -m src.churn_classification.train --config
+      configs/train.yaml --promote
+    deps:
+    - path: configs/train.yaml
+      hash: md5
+      md5: 943e9fce585c12d976447667b02cd5ec
+      size: 870
+    - path: data/processed/churn_classification
+      hash: md5
+      md5: d56f4218e040d8cbdfe6e97504b46880.dir
+      size: 978598
+      nfiles: 2
+    - path: src/churn_classification/final_model.py
+      hash: md5
+      md5: 55fab462357fd2b0fba81d161560087f
+      size: 1605
+    - path: src/churn_classification/preprocessing.py
+      hash: md5
+      md5: 07bd274352737ab0ebbbdf56a9a2ee20
+      size: 3351
+    - path: src/churn_classification/train.py
+      hash: md5
+      md5: d685b04a6473e1b5ae3daf26c7df6c92
+      size: 5220
+    outs:
+    - path: reports/metrics.json
+      hash: md5
+      md5: fa3e8bad0e573dbd04e8d9b8fb756f48
+      size: 301

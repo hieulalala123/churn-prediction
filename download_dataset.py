@@ -1,4 +1,3 @@
-import os
 import shutil
 from pathlib import Path
 
@@ -26,9 +25,7 @@ def download_and_localize_dataset(target_dir="./data"):
     # 3. Tìm file CSV trong đống file vừa tải về
     csv_files = list(cache_path.glob("*.csv"))
     if not csv_files:
-        raise FileNotFoundError(
-            "Không tìm thấy file CSV nào trong thư mục tải về từ Kaggle!"
-        )
+        raise FileNotFoundError("Không tìm thấy file CSV nào trong thư mục tải về từ Kaggle!")
 
     # 4. Copy các file CSV tìm thấy về thư mục cục bộ của dự án
     for csv_file in csv_files:
