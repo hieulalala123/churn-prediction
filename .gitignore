@@ -34,3 +34,7 @@ catboost_info/
 
 # Allowlist quyền của Claude Code — đặc thù từng máy, không commit
 .claude/settings.local.json
+
+# Hướng dẫn cho AI agent (Claude Code) — meta-tooling, giữ local, không commit vào repo sản phẩm
+claude.md
+CLAUDE.md
