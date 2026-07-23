@@ -25,7 +25,7 @@ Cost ratio chính xác (FN/FP) chưa có số liệu cụ thể từ business �
 
 ### 1.3 Data snapshot đã xác nhận
 
-Nguồn: `data/WA_Fn-UseC_-Telco-Customer-Churn.csv` (Kaggle `blastchar/telco-customer-churn`, tải qua `download_dataset.py`).
+Nguồn: `data/WA_Fn-UseC_-Telco-Customer-Churn.csv` (Kaggle `blastchar/telco-customer-churn`, tải qua `scripts/download_dataset.py`).
 
 - Kích thước: 7043 dòng × 21 cột.
 - Target `Churn`: **imbalanced — 73.5% No / 26.5% Yes**.

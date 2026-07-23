@@ -5,7 +5,7 @@ setup:
 	uv sync --all-groups
 
 download-data:
-	uv run python download_dataset.py
+	uv run python scripts/download_dataset.py
 
 lint:
 	uv run ruff check src/ tests/

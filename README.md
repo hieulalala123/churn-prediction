@@ -107,7 +107,7 @@ flowchart LR
 | `configs/train.yaml` | Cấu hình MLflow experiment/registry, decision threshold | Đọc bởi `train.py` |
 | `configs/monitoring.yaml` | Ngưỡng drift, đường dẫn reference | Đọc bởi `drift.py` |
 | `dvc.yaml` + `dvc.lock` | Pipeline DVC 2 stage: `split` → `train` | `dvc repro` tái tạo `data/processed/` + `reports/metrics.json` từ raw CSV |
-| `download_dataset.py` | Tải raw CSV từ Kaggle qua `kagglehub` (không cần API key) | Chạy bởi `make download-data`, bước đầu tiên cho checkout mới |
+| `scripts/download_dataset.py` | Tải raw CSV từ Kaggle qua `kagglehub` (không cần API key) | Chạy bởi `make download-data`, bước đầu tiên cho checkout mới |
 | `scripts/retrain_if_drift.sh` | Nối `check-drift` → `train --promote` → `POST /reload` | Vòng retrain tự động, chạy bởi `make retrain-if-drift` |
 | `reports/metrics.json` | Metrics holdout mới nhất, track bởi DVC (`cache: false`) | Output của stage `train`, dùng để so sánh giữa các lần train |
 | `reports/drift/` | Báo cáo HTML/JSON của Evidently mỗi lần chạy `check-drift` | Tự sinh, **không commit** (gitignored) |
